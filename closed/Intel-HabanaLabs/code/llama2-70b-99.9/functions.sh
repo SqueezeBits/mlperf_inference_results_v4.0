@@ -37,6 +37,14 @@ build_mlperf_inference()
                 mlperf_inference_usage
                 return 0
             ;;
+            --model)
+                model=$2
+                shift 2
+            ;;
+            --dtype)
+                dtype=$2
+                shift 2
+            ;;
             --output-dir )
                 output_dir=$2
                 shift 2
@@ -84,10 +92,10 @@ build_mlperf_inference()
     if [ ! -z "$submission_args" ]; then
         pushd $MLPERF_INFERENCE_CODE_DIR
         if [ "$compliance" == "true"  ]; then
-            python run_mlperf_scenarios.py $submission_args --output-dir $output_dir --mlperf-path $BUILD_DIR/mlcommons_inference --compliance
+            python run_mlperf_scenarios.py $submission_args --output-dir $output_dir --mlperf-path $BUILD_DIR/mlcommons_inference --compliance --model $model --dtype $dtype
             python prepare_and_check_submission.py $submission_args --output-dir $output_dir --mlperf-path $BUILD_DIR/mlcommons_inference --systems-dir-path $MLPERF_INFERENCE_CODE_DIR/../systems --measurements-dir-path $MLPERF_INFERENCE_CODE_DIR/../measurements
         else
-            python run_mlperf_scenarios.py $submission_args --output-dir $output_dir
+            python run_mlperf_scenarios.py $submission_args --output-dir $output_dir --model $model --dtype $dtype
         fi
         popd
 

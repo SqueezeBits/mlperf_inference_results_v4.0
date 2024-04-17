@@ -60,6 +60,8 @@ def get_args():
     parser.add_argument("--mode", type=str, choices=["full", "perf", "acc"],
                         default="full", help="dev options to shorten test time")
     parser.add_argument("--compliance", action="store_true")
+    parser.add_argument("--model", type=str, choices=["Llama-2-70b-chat-hf", "Llama-2-7b-chat-hf"], default="Llama-2-70b-chat-hf", help="Target model name to run")
+    parser.add_argument("--dtype", type=str, choices=["fp8", "bf16"], default="fp8", help="Precision to run the scenarios. To use fp8 with Llama-2-7b-chat-hf, calibration should be conducted first.")
 
     args = parser.parse_args()
     return args
@@ -226,6 +228,7 @@ def run_subprocess(cmd, cwd):
 
 def main():
     args = get_args()
+    logging.info(args)
     configuration = get_configuration(args.scenarios)
     output_dir = Path(args.output_dir).absolute()
     logging.info(f"Saving results to {output_dir}")
@@ -256,7 +259,7 @@ def main():
         total_time = 0
         start = time.time()
         results = {}
-        if args.mode != "perf":
+        if args.mode != "perf" and args.dtype == "fp8": #errors with bf16
             logging.info("Running accuracy")
             run_inference(base_dir, command, mode,
                           True, scenario, std_out_logs)
@@ -320,7 +323,7 @@ def main():
             "performance": performance,
             "batch_size": batch_size,
             "precision": precision,
-            "iterations": results["gen_num"],
+            "iterations": results.get("gen_num", -1),
             "dataset": scenarios_config["scenarios"][scenario]["dataset"],
             "total_time": round(total_time, 2),
             "eval_time": round(evaluation_time, 2),

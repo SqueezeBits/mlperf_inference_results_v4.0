@@ -43,7 +43,6 @@ wait_for_server() {
     exit -1
 }
 
-model="70b"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -126,8 +125,14 @@ export BATCH_BUCKET_SIZE=$batch_size
 max_batch_total_tokens=$(($batch_size*$MAX_TOTAL_TOKENS))
 max_batch_prefill_tokens=$(($prefill_batch_size*$MAX_INPUT_SEQ_LEN))
 
+if [ "$model" = "70b" ]; then
+    sharding_options="--sharded true --num-shard 8"
+else
+    sharding_options=""
+fi
+
 text-generation-launcher --port 8080 \
-    --model-id /mnt/weka/data/pytorch/llama2/Llama-2-$model-chat-hf --sharded true --num-shard 8 \
+    --model-id /mnt/weka/data/pytorch/llama2/Llama-2-$model-chat-hf $sharding_options \
     --max-total-tokens 2048 --max-input-length 1024 \
     --max-batch-prefill-tokens $max_batch_prefill_tokens --max-batch-total-tokens $max_batch_total_tokens \
      --shard-uds-path /tmp/text-generation-server-$scenario \
