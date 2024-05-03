@@ -10,7 +10,8 @@ import threading
 import struct
 
 from huggingface_hub import InferenceClient
-
+from transformers import AutoTokenizer
+import torch
 
 def except_hook(args):
     print(f"Thread failed with error: {args.exc_value}")
@@ -27,10 +28,24 @@ def load_dataset(dataset_path):
         ret.append((len(sample), ','.join(str(token) for token in sample)))
     return ret
 
+def generate_random_dataset(sample_count, length, model_path):
+    """Generates a random dataset where each sample is of the specified length."""
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    dataset = []
+    
+    for _ in range(sample_count):
+        random_sample =torch.randint(0, tokenizer.vocab_size, (1, length))#.cuda()
+        random_tokens = tokenizer.decode(random_sample[0], skip_special_tokens=True)
+        dataset.append(random_tokens)
+        
+    return dataset
 
 class Dataset():
-    def __init__(self, total_sample_count, dataset_path):
-        self.data = load_dataset(dataset_path)
+    def __init__(self, dataset_path, total_sample_count, model_path='/mnt/weka/data/pytorch/llama2/Meta-Llama-3-8B-Instruct'):
+        if dataset_path is None:
+            self.data = generate_random_dataset(sample_count=64, length=1024, model_path=model_path)
+        else:
+            self.data = load_dataset(dataset_path)
         self.count = min(len(self.data), total_sample_count)
 
     def LoadSamplesToRam(self, sample_list):
@@ -46,7 +61,8 @@ class Dataset():
 class SUT_base():
     def __init__(self, args):
         self.data_object = Dataset(dataset_path=args.dataset_path,
-                                   total_sample_count=args.total_sample_count)
+                                   total_sample_count=args.total_sample_count,
+                                   )
         self.qsl = lg.ConstructQSL(self.data_object.count, args.total_sample_count,
                                    self.data_object.LoadSamplesToRam, self.data_object.UnloadSamplesFromRam)
         self.tgi_semaphore = threading.Semaphore(args.max_num_threads)

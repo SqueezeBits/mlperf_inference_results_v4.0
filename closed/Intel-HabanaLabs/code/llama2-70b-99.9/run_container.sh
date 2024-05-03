@@ -1,5 +1,5 @@
 docker run --privileged --security-opt seccomp=unconfined   \
-           --name mlperf_benchmark -td               \
+           --name jh_mlperf_1151 -td               \
            -v /dev:/dev                                     \
            --device=/dev:/dev                               \
            -v /sys/kernel/debug:/sys/kernel/debug           \
@@ -8,4 +8,5 @@ docker run --privileged --security-opt seccomp=unconfined   \
            -v /scratch-1/models:/mnt/weka/data/pytorch/llama2 \
            --cap-add=sys_nice --cap-add=SYS_PTRACE          \
            --user root --workdir=/root --net=host           \
-           --ulimit memlock=-1:-1 vault.habana.ai/gaudi-docker-mlperf/ver4.0/pytorch-installer-2.1.1:1.14.98-33
+           --entrypoint /bin/bash                      \
+           --ulimit memlock=-1:-1 mlperf4-docker-1.15.1:latest

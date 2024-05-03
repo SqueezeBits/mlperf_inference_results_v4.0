@@ -62,6 +62,7 @@ def get_args():
     parser.add_argument("--compliance", action="store_true")
     parser.add_argument("--model", type=str, choices=["Llama-2-70b-chat-hf", "Llama-2-7b-chat-hf"], default="Llama-2-70b-chat-hf", help="Target model name to run")
     parser.add_argument("--dtype", type=str, choices=["fp8", "bf16"], default="fp8", help="Precision to run the scenarios. To use fp8 with Llama-2-7b-chat-hf, calibration should be conducted first.")
+    parser.add_argument("--skip-reqs", action="store_true")
 
     args = parser.parse_args()
     return args
