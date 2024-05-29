@@ -1,5 +1,5 @@
 docker run --privileged --security-opt seccomp=unconfined   \
-           --name jh_mlperf_1151 -td               \
+           --name CONTAINER_NAME -td               \
            -v /dev:/dev                                     \
            --device=/dev:/dev                               \
            -v /sys/kernel/debug:/sys/kernel/debug           \

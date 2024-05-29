@@ -1,6 +1,14 @@
 open_orca/
+tgi-gaudi/
+optimum-habana/
+benchmark_results/
+scripts/
+
+*.csv
 *.log
 *.txt
+*.tar
+*.tar.gz
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

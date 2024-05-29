@@ -17,6 +17,8 @@ usage() {
     echo "  --fp8                   Use the fp8 quantization"
     echo "  --output_dir, -o        Specify the output dir for logs if RESULT_DIR is not set, default: ./results"
     echo "  --help                  Display this help message"
+    echo "  --max-total-tokens      Maximum total tokens (default: 2048)"
+    echo "  --max-input-length      Maximum input length (default: 1024)"
     exit 1
 }
 
@@ -29,7 +31,7 @@ wait_for_server() {
 
     set +x
     while [ "$current_time" -lt "$timeout" ]; do
-        output=$(curl -s http://localhost:8080/info | grep Llama-2-$model-chat-hf | wc -l)
+        output=$(curl -s http://localhost:8080/info | grep $model_name | wc -l)
         if (( $output > 0 )); then
             set -x
             return
@@ -58,6 +60,18 @@ while [[ $# -gt 0 ]]; do
             scenario=$2
             shift 2
             ;;
+        --max_total_tokens)
+            max_total_tokens=$2
+            shift 2
+            ;;
+        --max_input_length)
+            max_input_length=$2
+            shift 2
+            ;;
+        --pad_sequence_to_multiple_of)
+            pad_sequence_to_multiple_of=$2
+            shift 2
+            ;;
         --fp8)
             fp8=true
             shift
@@ -75,6 +89,10 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+MAX_INPUT_SEQ_LEN=${max_input_length:-1024}
+MAX_TOTAL_TOKENS=${max_total_tokens:-2048}
+PAD_SEQUENCE_TO_MULTIPLE_OF=${pad_sequence_to_multiple_of:-32}
 
 if [[ -n $HELP || -z $model || -z $batch_size || -z $scenario ]]; then
     usage
@@ -109,12 +127,13 @@ else
 fi
 
 source "$HOME/.cargo/env"
-MAX_INPUT_SEQ_LEN=${MAX_INPUT_SEQ_LEN:-1024}
+# MAX_INPUT_SEQ_LEN=${MAX_INPUT_SEQ_LEN:-1024}
 export MAX_INPUT_SEQ_LEN
-MAX_TOTAL_TOKENS=${MAX_TOTAL_TOKENS:-2048}
+# MAX_TOTAL_TOKENS=${MAX_TOTAL_TOKENS:-2048}
 export  MAX_TOTAL_TOKENS
-PAD_SEQUENCE_TO_MULTIPLE_OF=${PAD_SEQUENCE_TO_MULTIPLE_OF:-32}
+# PAD_SEQUENCE_TO_MULTIPLE_OF=${PAD_SEQUENCE_TO_MULTIPLE_OF:-32}
 export PAD_SEQUENCE_TO_MULTIPLE_OF
+
 PT_HPU_ENABLE_LAZY_COLLECTIVES=${PT_HPU_ENABLE_LAZY_COLLECTIVES:-true}
 export PT_HPU_ENABLE_LAZY_COLLECTIVES
 SKIP_TOKENIZER_IN_TGI=${SKIP_TOKENIZER_IN_TGI:-true}
@@ -127,16 +146,36 @@ max_batch_prefill_tokens=$(($prefill_batch_size*$MAX_INPUT_SEQ_LEN))
 
 if [ "$model" = "70b" ]; then
     sharding_options="--sharded true --num-shard 8"
+    model_name=Llama-2-70b-chat-hf
+elif [ "$model" = "70b3" ]; then
+    sharding_options="--sharded true --num-shard 8"
+    model_name=Meta-Llama-3-70B-Instruct
+elif [ "$model" = "7b" ]; then
+    # sharding_options="--sharded true --num-shard 8"
+    sharding_options=""
+    model_name=Llama-2-7b-chat-hf
+elif [ "$model" = "8b" ]; then
+    sharding_options=""
+    model_name=Meta-Llama-3-8B-Instruct
+elif [ "$model" = "13b" ]; then
+    sharding_options=""
+    model_name=Llama-2-13b-chat-hf
 else
     sharding_options=""
 fi
 
-text-generation-launcher --port 8080 \
-    --model-id /mnt/weka/data/pytorch/llama2/Llama-2-$model-chat-hf $sharding_options \
-    --max-total-tokens 2048 --max-input-length 1024 \
-    --max-batch-prefill-tokens $max_batch_prefill_tokens --max-batch-total-tokens $max_batch_total_tokens \
-     --shard-uds-path /tmp/text-generation-server-$scenario \
-    --max-concurrent-requests 1024 --max-waiting-tokens 20 --waiting-served-ratio $waiting_served_ratio \
-     --dtype bfloat16 &>> ${output_dir}/text-generation-launcher.log &
+# export PROF_WAITSTEP=1
+# export PROF_WARMUPSTEP=1
+# export PROF_STEP=1
+# export PROF_RECORD_SHAPES=true
+# export PROF_PATH='/tmp/hpu_profile'
 
-wait_for_server "${model}"
+text-generation-launcher --port 8080 \
+    --model-id /mnt/weka/data/pytorch/llama2/$model_name $sharding_options\
+    --max-total-tokens $MAX_TOTAL_TOKENS --max-input-length $MAX_INPUT_SEQ_LEN \
+    --max-batch-prefill-tokens $max_batch_prefill_tokens --max-batch-total-tokens $max_batch_total_tokens \
+    --shard-uds-path /tmp/text-generation-server-$scenario \
+    --max-concurrent-requests 1024 --max-waiting-tokens 20 --waiting-served-ratio $waiting_served_ratio \
+    --dtype bfloat16 &>> ${output_dir}/text-generation-launcher.log &
+
+wait_for_server "${model_name}"

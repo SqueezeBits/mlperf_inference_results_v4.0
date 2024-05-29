@@ -12,6 +12,7 @@ import struct
 from huggingface_hub import InferenceClient
 from transformers import AutoTokenizer
 import torch
+import random
 
 def except_hook(args):
     print(f"Thread failed with error: {args.exc_value}")
@@ -28,22 +29,24 @@ def load_dataset(dataset_path):
         ret.append((len(sample), ','.join(str(token) for token in sample)))
     return ret
 
-def generate_random_dataset(sample_count, length, model_path):
+def generate_random_dataset(sample_count, length, tokenizer_path):
     """Generates a random dataset where each sample is of the specified length."""
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
     dataset = []
-    
     for _ in range(sample_count):
-        random_sample =torch.randint(0, tokenizer.vocab_size, (1, length))#.cuda()
-        random_tokens = tokenizer.decode(random_sample[0], skip_special_tokens=True)
-        dataset.append(random_tokens)
+        dataset.append((length, 
+                        "1,1,518,25580,29962,3532,14816,29903,6778,13,3492,526,385,319,29902,"
+                        + ",".join(str(random.randint(3, tokenizer.vocab_size)) for _ in range(length-20))
+                        + ",518,29914,25580,29962,29871" )) 
+    
         
     return dataset
 
 class Dataset():
-    def __init__(self, dataset_path, total_sample_count, model_path='/mnt/weka/data/pytorch/llama2/Meta-Llama-3-8B-Instruct'):
+    def __init__(self, dataset_path, total_sample_count, tokenizer_path, random_data_length):
         if dataset_path is None:
-            self.data = generate_random_dataset(sample_count=64, length=1024, model_path=model_path)
+            print("!!!!!!!!!Generating random dataset!!!!!!!!!")
+            self.data = generate_random_dataset(sample_count=total_sample_count, length=random_data_length, tokenizer_path=tokenizer_path)
         else:
             self.data = load_dataset(dataset_path)
         self.count = min(len(self.data), total_sample_count)
@@ -62,11 +65,14 @@ class SUT_base():
     def __init__(self, args):
         self.data_object = Dataset(dataset_path=args.dataset_path,
                                    total_sample_count=args.total_sample_count,
+                                   tokenizer_path=args.tokenizer_path,
+                                   random_data_length=args.random_data_length
                                    )
         self.qsl = lg.ConstructQSL(self.data_object.count, args.total_sample_count,
                                    self.data_object.LoadSamplesToRam, self.data_object.UnloadSamplesFromRam)
         self.tgi_semaphore = threading.Semaphore(args.max_num_threads)
         self.client = InferenceClient(args.sut_server)
+        self.max_new_tokens = args.max_new_tokens
         self.gen_tok_lens = []
 
     def flush_queries(self):
@@ -80,7 +86,7 @@ class Server(SUT_base):
     def tgi_request(self, sample):
         _, str_input = self.data_object.data[sample.index]
         res_stream = self.client.text_generation(
-            str_input, max_new_tokens=1024, stream=True, details=True)
+            str_input, max_new_tokens=self.max_new_tokens, stream=True, details=True)
         out = []
         for res_token_id, res_token in enumerate(res_stream):
             res_token = res_token.token

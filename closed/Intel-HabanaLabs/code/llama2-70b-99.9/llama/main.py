@@ -23,7 +23,7 @@ def get_args():
     parser.add_argument("--sut-server", type=str,
                         default="http://localhost:8080", help="Address of the TGI server")
     parser.add_argument("--dataset-path", type=str,
-                        default="/root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.1024_sampled.pkl", help="Path to the dataset")
+                        default=None, help="Path to the dataset")
     parser.add_argument("--accuracy", action="store_true",
                         help="Run accuracy mode")
     parser.add_argument("--audit-conf", type=str, default="audit.conf",
@@ -41,6 +41,12 @@ def get_args():
                         help="Max number of concurrent issue_query threads")
     parser.add_argument("--target-qps", type=float, default=None,
                         help="Target qps")
+    parser.add_argument("--max-new-tokens", type=int, default=1024,
+                        help="Max number of tokens to generate at once")
+    parser.add_argument("--random-data-length", type=int, default=1024,
+                        help="Length of random data")
+    parser.add_argument("--tokenizer-path", type=str,
+                        default=None, help="Path to the tokenizer")
 
     args = parser.parse_args()
     return args
@@ -88,7 +94,7 @@ def main():
     if args.accuracy and args.scenario == "Offline":
         log.info("Estimated performance for accuracy run is {:.1f} tokens per second".format(
             gen_tokens/duration))
-    log.info("Test took {:.1f} sec : generated {} tokens and processed {} queries".format(
+    log.info("Test took {:.3f} sec : generated {} tokens and processed {} queries".format(
         duration, gen_tokens, len(sut.gen_tok_lens)))
 
     log.info("Run Completed!")

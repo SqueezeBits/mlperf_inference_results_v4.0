@@ -18,8 +18,8 @@ function mlperf_inference_usage()
     echo -e "  --skip-reqs                 Skip installing requirements, downloading MLCommons Inference and building loadgen; optional"
     echo -e "  --compliance                Create a submission package compliant with MLCommons submission checker; optional"
     echo -e "  --submission                List of scenarios to run; optional"
+    echo -e "  --model                     Model name; optional"
     echo -e "  -h,  --help                 Prints this help"
-
 }
 
 build_mlperf_inference()
@@ -45,19 +45,35 @@ build_mlperf_inference()
                 dtype=$2
                 shift 2
             ;;
-            --output-dir )
+            --output-dir)
                 output_dir=$2
                 shift 2
             ;;
-            --compliance )
+            --max-batch-size)
+                max_batch_size=$2
+                shift 2
+            ;;
+            --pad_sequence_to_multiple_of)
+                pad_sequence_to_multiple_of=$2
+                shift 2
+            ;;
+            --input-length)
+                input_length=$2
+                shift 2
+            ;;
+            --target-qps)
+                target_qps=$2
+                shift 2
+            ;;
+            --compliance)
                 compliance=true
                 shift 1
             ;;
-            --skip-reqs )
-                shift
+            --skip-reqs)
                 skip_reqs=true
+                shift 1
             ;;
-            --submission )
+            --submission)
                 shift
                 submission_args=$@
                 break
@@ -65,7 +81,7 @@ build_mlperf_inference()
         esac
     done
 
-    if [ "$skip_reqs" == "false" ]; then
+    if [ $skip_reqs == "false" ]; then
         model_name=""
         if [ -n "$submission_args" ]; then
             pushd $MLPERF_INFERENCE_CODE_DIR
@@ -87,6 +103,8 @@ build_mlperf_inference()
         CFLAGS="-std=c++14 -O3" python setup.py bdist_wheel
         cd ..; pip install --force-reinstall loadgen/dist/`ls -r loadgen/dist/ | head -n1` ; cd -
         popd
+
+        rm -rf $BUILD_DIR
     fi
 
     if [ ! -z "$submission_args" ]; then
@@ -95,11 +113,10 @@ build_mlperf_inference()
             python run_mlperf_scenarios.py $submission_args --output-dir $output_dir --mlperf-path $BUILD_DIR/mlcommons_inference --compliance --model $model --dtype $dtype
             python prepare_and_check_submission.py $submission_args --output-dir $output_dir --mlperf-path $BUILD_DIR/mlcommons_inference --systems-dir-path $MLPERF_INFERENCE_CODE_DIR/../systems --measurements-dir-path $MLPERF_INFERENCE_CODE_DIR/../measurements
         else
-            python run_mlperf_scenarios.py $submission_args --output-dir $output_dir --model $model --dtype $dtype
+            python run_mlperf_scenarios.py $submission_args --output-dir $output_dir --model $model --dtype $dtype --mode perf --skip-reqs --max-batch-size $max_batch_size --pad_sequence_to_multiple_of $pad_seq --input-length $input_length --target-qps $target_qps
         fi
         popd
 
     fi
 
-    rm -rf $BUILD_DIR
 }

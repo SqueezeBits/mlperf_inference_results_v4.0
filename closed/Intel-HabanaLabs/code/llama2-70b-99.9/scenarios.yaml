@@ -1,39 +1,444 @@
-benchmarks:
-  llama2-70b-99.9:
-    "rouge1": 43.83612
-    "rouge2": 21.6890892
-    "rougeL": 28.2219498
+
 scenarios:
-  llama-99.9-70b-fp8:
+  Llama-3-8B-bf16-FIXED:
     dataset: orca
     code_dir: llama
-    benchmark: llama2-70b-99.9
-    command: python main.py
-    init_setup: ./setup_tgi.sh
-    init_Offline: ./run_tgi_server.sh -m 70b --bs 1024 --scenario Offline --fp8 --output_dir
-    init_Server: ./run_tgi_server.sh -m 70b --bs 768 --scenario Server --fp8 --output_dir
-    precision: fp8
-    batch_size_Offline: 1024
-    batch_size_Server: 768
-  llama-99.9-70b-bf16:
-    dataset: orca
-    code_dir: llama
-    benchmark: llama2-70b-99.9
-    command: python main.py --user-conf configs/bf16.conf
-    init_setup: ./setup_tgi.sh
-    init_Offline: ./run_tgi_server.sh -m 70b --bs 256 --scenario Offline --output_dir
-    init_Server: ./run_tgi_server.sh -m 70b --bs 256 --scenario Server --output_dir
+    benchmark: llama3-8b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Meta-Llama-3-8B-Instruct
+    init_Server: ./run_tgi_server.sh -m 8b --scenario Server --output_dir
     precision: bf16
-    batch_size_Offline: 256
-    batch_size_Server: 256
-  llama-99.9-7b-bf16:
+  Llama-3-8B-bf16-FIXED-gen512:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-8b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Meta-Llama-3-8B-Instruct --max-new-tokens 512
+    init_Server: ./run_tgi_server.sh -m 8b --scenario Server --output_dir
+  Llama-3-8B-bf16-FIXED-gen32:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-8b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Meta-Llama-3-8B-Instruct --max-new-tokens 8
+    init_Server: ./run_tgi_server.sh -m 8b --scenario Server --output_dir
+  Llama-3-8B-bf16-FIXED-gen16:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-8b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Meta-Llama-3-8B-Instruct --max-new-tokens 8
+    init_Server: ./run_tgi_server.sh -m 8b --scenario Server --output_dir
+  Llama-3-8B-bf16-FIXED-gen8:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-8b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Meta-Llama-3-8B-Instruct --max-new-tokens 8
+    init_Server: ./run_tgi_server.sh -m 8b --scenario Server --output_dir
+  Llama-3-8B-bf16-FIXED-gen4:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-8b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Meta-Llama-3-8B-Instruct --max-new-tokens 4
+    init_Server: ./run_tgi_server.sh -m 8b --scenario Server --output_dir
+  Llama-3-8B-bf16-FIXED-gen2:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-8b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Meta-Llama-3-8B-Instruct --max-new-tokens 2
+    init_Server: ./run_tgi_server.sh -m 8b --scenario Server --output_dir
+  Llama-3-8B-bf16-FIXED-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-8b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Meta-Llama-3-8B-Instruct --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 8b --scenario Server --output_dir
+    precision: bf16
+  Llama-3-70B-bf16-FIXED:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Meta-Llama-3-70B-Instruct
+    init_Server: ./run_tgi_server.sh -m 70b3 --scenario Server --output_dir
+    precision: bf16
+  Llama-3-70B-bf16-FIXED-gen512:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Meta-Llama-3-70B-Instruct --max-new-tokens 512
+    init_Server: ./run_tgi_server.sh -m 70b3 --scenario Server --output_dir
+  Llama-3-70B-bf16-FIXED-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Meta-Llama-3-70B-Instruct --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 70b3 --scenario Server --output_dir
+    precision: bf16
+  Llama-2-7B-bf16-FIXED:
     dataset: orca
     code_dir: llama
     benchmark: llama2-7b-99.9
-    command: python main.py --user-conf configs/bf16.conf
-    init_setup: ./setup_tgi.sh
-    init_Offline: ./run_tgi_server.sh -m 7b --bs 16 --scenario Offline --output_dir
-    init_Server: ./run_tgi_server.sh -m 7b --bs 16 --scenario Server --output_dir
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Llama-2-7b-chat-hf
+    init_Server: ./run_tgi_server.sh -m 7b --scenario Server --output_dir
     precision: bf16
-    batch_size_Offline: 16
-    batch_size_Server: 16
+  Llama-2-7B-bf16-FIXED-gen512:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-7b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Llama-2-7b-chat-hf --max-new-tokens 512
+    init_Server: ./run_tgi_server.sh -m 7b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-7B-bf16-FIXED-gen8:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-7b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Llama-2-7b-chat-hf --max-new-tokens 8
+    init_Server: ./run_tgi_server.sh -m 7b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-7B-bf16-FIXED-gen4:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-7b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Llama-2-7b-chat-hf --max-new-tokens 4
+    init_Server: ./run_tgi_server.sh -m 7b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-7B-bf16-FIXED-gen2:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-7b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Llama-2-7b-chat-hf --max-new-tokens 2
+    init_Server: ./run_tgi_server.sh -m 7b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-7B-bf16-FIXED-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-7b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Llama-2-7b-chat-hf --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 7b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-13B-bf16-FIXED:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-13b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Llama-2-13b-chat-hf
+    init_Server: ./run_tgi_server.sh -m 13b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-13B-bf16-FIXED-gen512:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-13b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Llama-2-13b-chat-hf --max-new-tokens 512
+    init_Server: ./run_tgi_server.sh -m 13b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-13B-bf16-FIXED-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-13b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Llama-2-13b-chat-hf --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 13b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-70B-bf16-FIXED:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Llama-2-70b-chat-hf
+    init_Server: ./run_tgi_server.sh -m 70b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-70B-bf16-FIXED-gen512:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Llama-2-70b-chat-hf --max-new-tokens 512
+    init_Server: ./run_tgi_server.sh -m 70b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-70B-bf16-FIXED-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --tokenizer-path /mnt/weka/data/pytorch/llama2/Llama-2-70b-chat-hf --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 70b --scenario Server --output_dir
+    precision: bf16
+
+
+  
+
+  Llama-3-8B-bf16-orca1024:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-8b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama3.1024_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 8b --scenario Server --output_dir
+    precision: bf16
+  Llama-3-8B-bf16-orca1024-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-8b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama3.1024_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 8b --scenario Server --output_dir
+    precision: bf16
+  Llama-3-70B-bf16-orca1024:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama3.1024_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 70b3 --scenario Server --output_dir
+    precision: bf16
+  Llama-3-70B-bf16-orca1024-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama3.1024_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 70b3 --scenario Server --output_dir
+    precision: bf16
+  Llama-2-7B-bf16-orca1024:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-7b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.1024_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 7b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-7B-bf16-orca1024-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-7b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.1024_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 7b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-13B-bf16-orca1024:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-13b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.1024_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 13b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-13B-bf16-orca1024-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-13b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.1024_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 13b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-70B-bf16-orca1024:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.1024_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 70b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-70B-bf16-orca1024-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.1024_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 70b --scenario Server --output_dir
+    precision: bf16
+  
+  
+  Llama-3-8B-bf16-orca2048:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-8b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama3.2048_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 8b --scenario Server --output_dir
+    precision: bf16
+  Llama-3-8B-bf16-orca2048-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-8b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama3.2048_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 8b --scenario Server --output_dir
+    precision: bf16
+  Llama-3-70B-bf16-orca2048:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama3.2048_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 70b3 --scenario Server --output_dir
+    precision: bf16
+  Llama-3-70B-bf16-orca2048-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama3.2048_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 70b3 --scenario Server --output_dir
+    precision: bf16
+  Llama-2-7B-bf16-orca2048:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-7b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.2048_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 7b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-7B-bf16-orca2048-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-7b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.2048_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 7b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-13B-bf16-orca2048:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-13b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.2048_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 13b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-13B-bf16-orca2048-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-13b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.2048_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 13b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-70B-bf16-orca2048:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.2048_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 70b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-70B-bf16-orca2048-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.2048_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 70b --scenario Server --output_dir
+    precision: bf16
+  
+  Llama-3-8B-bf16-orca4096:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-8b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama3.4096_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 8b --scenario Server --output_dir
+    precision: bf16
+  Llama-3-8B-bf16-orca4096-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-8b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama3.4096_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 8b --scenario Server --output_dir
+    precision: bf16
+  Llama-3-70B-bf16-orca4096:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama3.4096_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 70b3 --scenario Server --output_dir
+    precision: bf16
+  Llama-3-70B-bf16-orca4096-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama3.4096_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 70b3 --scenario Server --output_dir
+    precision: bf16
+  Llama-2-7B-bf16-orca4096:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-7b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.4096_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 7b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-7B-bf16-orca4096-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-7b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.4096_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 7b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-13B-bf16-orca4096:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-13b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.4096_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 13b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-13B-bf16-orca4096-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-13b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.4096_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 13b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-70B-bf16-orca4096:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.4096_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 70b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-70B-bf16-orca4096-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.4096_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 70b --scenario Server --output_dir
+    precision: bf16
+  
+  Llama-3-8B-bf16-orca8192:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-8b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama3.8192_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 8b --scenario Server --output_dir
+    precision: bf16
+  Llama-3-8B-bf16-orca8192-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-8b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama3.8192_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 8b --scenario Server --output_dir
+    precision: bf16
+  Llama-3-70B-bf16-orca8192:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama3.8192_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 70b3 --scenario Server --output_dir
+    precision: bf16
+  Llama-3-70B-bf16-orca8192-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama3-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama3.8192_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 70b3 --scenario Server --output_dir
+    precision: bf16
+  Llama-2-7B-bf16-orca8192:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-7b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.8192_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 7b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-7B-bf16-orca8192-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-7b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.8192_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 7b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-13B-bf16-orca8192:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-13b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.8192_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 13b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-13B-bf16-orca8192-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-13b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.8192_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 13b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-70B-bf16-orca8192:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.8192_sampled.pkl
+    init_Server: ./run_tgi_server.sh -m 70b --scenario Server --output_dir
+    precision: bf16
+  Llama-2-70B-bf16-orca8192-summarization:
+    dataset: orca
+    code_dir: llama
+    benchmark: llama2-70b-99.9
+    command: python main.py --user-conf configs/bf16.conf --dataset-path /root/llama2-70b-99.9/open_orca/open_orca_gpt4_tokenized_llama.8192_sampled.pkl --max-new-tokens 1
+    init_Server: ./run_tgi_server.sh -m 70b --scenario Server --output_dir
+    precision: bf16
