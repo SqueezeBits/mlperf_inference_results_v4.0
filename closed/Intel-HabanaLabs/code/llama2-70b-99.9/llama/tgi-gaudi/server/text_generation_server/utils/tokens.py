@@ -104,6 +104,7 @@ class StoppingCriteria:
         ignore_eos_token: bool = False,
     ):
         self.eos_token_id = eos_token_id
+        self.eot_token_id = 128009
         self.stop_sequence_criterias = stop_sequence_criterias
         self.max_new_tokens = max_new_tokens
         self.current_tokens = 0
@@ -115,7 +116,7 @@ class StoppingCriteria:
         if self.current_tokens >= self.max_new_tokens:
             return True, FinishReason.FINISH_REASON_LENGTH
 
-        if not self.ignore_eos_token and last_token == self.eos_token_id:
+        if not self.ignore_eos_token and (last_token == self.eos_token_id or last_token == self.eot_token_id):
             return True, FinishReason.FINISH_REASON_EOS_TOKEN
 
         self.current_output += last_output
@@ -130,13 +131,14 @@ class StoppingCriteria:
         cls,
         pb: generate_pb2.StoppingCriteriaParameters,
         tokenizer: PreTrainedTokenizerBase,
+        ignore_eos_token: bool = False,
     ) -> "StoppingCriteria":
         stop_sequence_criterias = [StopSequenceCriteria(sequence) for sequence in pb.stop_sequences]
         return StoppingCriteria(
             tokenizer.eos_token_id,
             stop_sequence_criterias,
             pb.max_new_tokens,
-            pb.ignore_eos_token,
+            ignore_eos_token if ignore_eos_token else pb.ignore_eos_token,
         )
 
 
