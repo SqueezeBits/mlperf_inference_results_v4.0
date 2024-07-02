@@ -47,7 +47,7 @@ BATCH_BUCKET_SIZE = int(os.environ.get('BATCH_BUCKET_SIZE', 8))
 PAD_SEQUENCE_TO_MULTIPLE_OF = int(os.environ.get('PAD_SEQUENCE_TO_MULTIPLE_OF', 128))
 PREFILL_BATCH_BUCKET_SIZE = int(os.environ.get('PREFILL_BATCH_BUCKET_SIZE', 4))
 CHUNK_SIZES = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
-
+IGNORE_EOS_TOKEN = os.getenv("IGNORE_EOS_TOKEN", False)
 
 def round_up(number, k):
     return (number + k - 1) // k * k
@@ -205,7 +205,7 @@ class CausalLMRequest:
             input_length=None,
             prefix_offset=None,
             read_offset=None,
-            stopping_criteria=StoppingCriteria.from_pb(data.stopping_parameters, tokenizer),
+            stopping_criteria=StoppingCriteria.from_pb(data.stopping_parameters, tokenizer, IGNORE_EOS_TOKEN),
             all_input_ids=None,)
 
     def update_idx(self, new_idx):
