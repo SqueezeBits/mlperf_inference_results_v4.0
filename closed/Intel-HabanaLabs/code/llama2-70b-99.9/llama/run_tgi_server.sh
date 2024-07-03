@@ -139,11 +139,8 @@ else
 fi
 
 source "$HOME/.cargo/env"
-# MAX_INPUT_SEQ_LEN=${MAX_INPUT_SEQ_LEN:-1024}
 export MAX_INPUT_SEQ_LEN
-# MAX_TOTAL_TOKENS=${MAX_TOTAL_TOKENS:-2048}
 export  MAX_TOTAL_TOKENS
-# PAD_SEQUENCE_TO_MULTIPLE_OF=${PAD_SEQUENCE_TO_MULTIPLE_OF:-32}
 export PAD_SEQUENCE_TO_MULTIPLE_OF
 
 PT_HPU_ENABLE_LAZY_COLLECTIVES=${PT_HPU_ENABLE_LAZY_COLLECTIVES:-true}
@@ -176,11 +173,6 @@ else
     sharding_options=""
 fi
 
-# export PROF_WAITSTEP=1
-# export PROF_WARMUPSTEP=1
-# export PROF_STEP=1
-# export PROF_RECORD_SHAPES=true
-# export PROF_PATH='/tmp/hpu_profile'
 
 text-generation-launcher --port 8080 \
     --model-id /mnt/weka/data/pytorch/llama2/$model_name $sharding_options\

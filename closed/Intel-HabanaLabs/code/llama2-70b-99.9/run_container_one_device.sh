@@ -1,5 +1,5 @@
 docker run \
-           --name jh_mlperf_hpu0 -td               \
+           --name <Container_name> -td               \
            -e HABANA_VISIBLE_DEVICES=0 \
            -e DBG_TRACE_FILENAME=./debug.log \
            -v $PWD:/root/llama2-70b-99.9 \

@@ -271,7 +271,8 @@ def main():
             command = f'{scenarios_config["scenarios"][scenario]["command"]}{args.input_length}_sampled.pkl --target-qps {args.target_qps}'
         else:
             command = f'{scenarios_config["scenarios"][scenario]["command"]} --target-qps {args.target_qps}'
-            command += f" --random-data-length {int(args.input_length) -1}"
+            command += f" --random-data-length {int(args.input_length)}"
+            # command += f" --random-data-length {int(args.input_length) -1}"
         std_out_logs = output_dir / "std_out_logs.txt"
         # logs are saved in the code/<model> dir
         logs_path = base_dir / "build" / "logs"

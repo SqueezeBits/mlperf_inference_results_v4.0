@@ -1053,7 +1053,6 @@ class CausalLM(Model):
         # decodes
         while decode_batch is not None:
             _, decode_batch = self.generate_token([decode_batch])
-        # printfile("not shifting warmup")
         printfile("warmup finished")
 
     def shifting_warmup(self, batch: CausalLMBatch) -> None:
