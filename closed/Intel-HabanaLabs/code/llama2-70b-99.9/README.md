@@ -2,6 +2,11 @@
 
 Check out the [original README](./README_org.md) for more detailed information on setup and configuration.
 
+## Setup Environment
+```bash
+bash run_container.sh
+```
+
 ## Benchmarking Instructions
 
 Follow the guidelines provided in the original README, excluding the model download part if the downloaded models can be mounted.
