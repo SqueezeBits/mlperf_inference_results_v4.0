@@ -23,7 +23,7 @@ def get_args():
     parser.add_argument("--sut-server", type=str,
                         default="http://localhost:8080", help="Address of the TGI server")
     parser.add_argument("--dataset-path", type=str,
-                        default="/mnt/weka/data/mlperf_inference/llama2/processed-data.pkl")
+                        default=None, help="Path to the dataset")
     parser.add_argument("--accuracy", action="store_true",
                         help="Run accuracy mode")
     parser.add_argument("--audit-conf", type=str, default="audit.conf",
@@ -32,13 +32,21 @@ def get_args():
                         default="mlperf.conf", help="mlperf rules config")
     parser.add_argument("--user-conf", type=str, default="configs/fp8.conf",
                         help="user config for user LoadGen settings such as target QPS")
-    parser.add_argument("--total-sample-count", type=int, default=24576)
+    parser.add_argument("--total-sample-count", type=int, default=1024)
     parser.add_argument("--output-log-dir", type=str,
                         default="build/logs", help="Where logs are saved")
     parser.add_argument("--enable-log-trace", action="store_true",
                         help="Enable log tracing. This file can become quite large")
     parser.add_argument("--max-num-threads", type=int, default=1024,
                         help="Max number of concurrent issue_query threads")
+    parser.add_argument("--target-qps", type=float, default=None,
+                        help="Target qps")
+    parser.add_argument("--max-new-tokens", type=int, default=1024,
+                        help="Max number of tokens to generate at once")
+    parser.add_argument("--random-data-length", type=int, default=1024,
+                        help="Length of random data")
+    parser.add_argument("--tokenizer-path", type=str,
+                        default=None, help="Path to the tokenizer")
 
     args = parser.parse_args()
     return args
@@ -50,6 +58,8 @@ def main():
     settings = lg.TestSettings()
     settings.FromConfig(args.mlperf_conf, "llama2-70b", args.scenario)
     settings.FromConfig(args.user_conf, "llama2-70b", args.scenario)
+    if args.target_qps is not None:
+        settings.server_target_qps = args.target_qps
 
     if args.accuracy:
         settings.mode = lg.TestMode.AccuracyOnly
@@ -73,6 +83,7 @@ def main():
 
     lgSUT = lg.ConstructSUT(sut.issue_queries, sut.flush_queries)
     log.info("Starting Benchmark run")
+    log.info(f"target qps: {settings.server_target_qps}")
     t_start = time.time()
     lg.StartTestWithLogSettings(
         lgSUT, sut.qsl, settings, log_settings, args.audit_conf)
@@ -83,7 +94,7 @@ def main():
     if args.accuracy and args.scenario == "Offline":
         log.info("Estimated performance for accuracy run is {:.1f} tokens per second".format(
             gen_tokens/duration))
-    log.info("Test took {:.1f} sec : generated {} tokens and processed {} queries".format(
+    log.info("Test took {:.3f} sec : generated {} tokens and processed {} queries".format(
         duration, gen_tokens, len(sut.gen_tok_lens)))
 
     log.info("Run Completed!")

@@ -16,8 +16,8 @@ import time
 
 scenarios_config = yaml.full_load(open("scenarios.yaml"))
 logging.basicConfig(level=logging.INFO)
-modes = ["Server", "Offline"]
-units_map = {"Server": "Queries/s", "Offline": "Samples/s"}
+modes = ["Server"]#, "Offline"]
+units_map = {"Server": "Queries/s"}#, "Offline": "Samples/s"}
 compliance_tests_map = {"llama2-70b-99.9": ["TEST06"]}
 
 
@@ -60,8 +60,13 @@ def get_args():
     parser.add_argument("--mode", type=str, choices=["full", "perf", "acc"],
                         default="full", help="dev options to shorten test time")
     parser.add_argument("--compliance", action="store_true")
-    parser.add_argument("--model", type=str, choices=["Llama-2-70b-chat-hf", "Llama-2-7b-chat-hf"], default="Llama-2-70b-chat-hf", help="Target model name to run")
+    parser.add_argument("--model", type=str, choices=["Llama-2-70b-chat-hf", "Llama-2-7b-chat-hf", "Meta-Llama-3-8B-Instruct", "Meta-Llama-3-70B-Instruct", "Llama-2-13b-chat-hf"], default="Llama-2-70b-chat-hf", help="Target model name to run")
     parser.add_argument("--dtype", type=str, choices=["fp8", "bf16"], default="fp8", help="Precision to run the scenarios. To use fp8 with Llama-2-7b-chat-hf, calibration should be conducted first.")
+    parser.add_argument("--skip-reqs", action="store_true")
+    parser.add_argument("--max-batch-size", default=None, help="Maximum batch size to run")
+    parser.add_argument("--pad_sequence_to_multiple_of", default=None, help="32 * N")
+    parser.add_argument("--input-length", default=None, help="Maximum input length")
+    parser.add_argument("--target-qps", type=float, default=1.0, help="Target QPS for performance run")
 
     args = parser.parse_args()
     return args
@@ -233,12 +238,17 @@ def main():
     output_dir = Path(args.output_dir).absolute()
     logging.info(f"Saving results to {output_dir}")
     output_dir.mkdir(exist_ok=True)
-    init_setup_done = False
+    if args.skip_reqs:
+        print("Skipping requirements installation")
+        init_setup_done = True
+    else:
+        init_setup_done = False
     for scenario, mode in configuration:
         code_dir = scenarios_config["scenarios"][scenario]["code_dir"]
         base_dir = Path(code_dir)
         # Initialize setup
         if init_setup_done is False:
+            print("Initializing setup")
             init_setup_cmd = scenarios_config["scenarios"][scenario].get(
                 "init_setup", None)
             init_setup_done = run_subprocess(init_setup_cmd, base_dir)
@@ -246,11 +256,23 @@ def main():
         init_scenario = scenarios_config["scenarios"][scenario].get(
             f"init_{mode}", None)
         init_scenario_cmd = None if init_scenario is None else f"{init_scenario} {output_dir}"
+        if args.pad_sequence_to_multiple_of is not None:
+            init_scenario_cmd += f" --pad_sequence_to_multiple_of {args.pad_sequence_to_multiple_of}"
+        if args.max_batch_size is not None:
+            init_scenario_cmd += f" --bs {args.max_batch_size}"
+        if args.input_length is not None:
+            init_scenario_cmd += f" --max_input_length {int(args.input_length)} --max_total_tokens {int(args.input_length) + 1024}"
         run_subprocess(init_scenario_cmd, base_dir)
 
         logging.info(f"Running {scenario} {mode}")
         benchmark = scenarios_config["scenarios"][scenario]["benchmark"]
-        command = scenarios_config["scenarios"][scenario]["command"]
+        dataset = scenarios_config["scenarios"][scenario]["dataset"]
+        if dataset == "orca":
+            command = f'{scenarios_config["scenarios"][scenario]["command"]}{args.input_length}_sampled.pkl --target-qps {args.target_qps}'
+        else:
+            command = f'{scenarios_config["scenarios"][scenario]["command"]} --target-qps {args.target_qps}'
+            command += f" --random-data-length {int(args.input_length)}"
+            # command += f" --random-data-length {int(args.input_length) -1}"
         std_out_logs = output_dir / "std_out_logs.txt"
         # logs are saved in the code/<model> dir
         logs_path = base_dir / "build" / "logs"
@@ -296,8 +318,10 @@ def main():
 
         # get summary
         precision = scenarios_config["scenarios"][scenario]["precision"]
-        batch_size = scenarios_config["scenarios"][scenario].get(
-                f"batch_size_{mode}", None)
+        if args.max_batch_size is not None:
+            batch_size = args.max_batch_size  
+        else: 
+            batch_size = scenarios_config["scenarios"][scenario].get(f"batch_size_{mode}", None)
         if batch_size is None:
             batch_size = scenarios_config["scenarios"][scenario]["batch_size"]
         units = "Tokens/s" if (code_dir == "llama" and mode ==
@@ -326,7 +350,7 @@ def main():
             "iterations": results.get("gen_num", -1),
             "dataset": scenarios_config["scenarios"][scenario]["dataset"],
             "total_time": round(total_time, 2),
-            "eval_time": round(evaluation_time, 2),
+            # "eval_time": round(evaluation_time, 2),
             "warmup_time": round(warmup_time, 2),
             **results,
         }
