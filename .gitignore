@@ -1,9 +1,12 @@
-open_orca/
-tgi-gaudi/
-optimum-habana/
-benchmark_results/
-scripts/
+closed/Intel-HabanaLabs/code/llama2-70b-99.9/llama/open_orca/
+closed/Intel-HabanaLabs/code/llama2-70b-99.9/llama/optimum-habana/
+closed/Intel-HabanaLabs/code/llama2-70b-99.9/llama/benchmark_results/
+closed/Intel-HabanaLabs/code/llama2-70b-99.9/llama/scripts/
+closed/Intel-HabanaLabs/code/utils/
 
+*.npz
+*.pbtxt
+*.npz
 *.csv
 *.log
 *.txt

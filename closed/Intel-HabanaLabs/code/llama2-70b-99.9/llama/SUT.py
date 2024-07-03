@@ -31,21 +31,19 @@ def load_dataset(dataset_path):
 
 def generate_random_dataset(sample_count, length, tokenizer_path):
     """Generates a random dataset where each sample is of the specified length."""
+    random.seed(0)
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
     dataset = []
     for _ in range(sample_count):
-        dataset.append((length, 
-                        "1,1,518,25580,29962,3532,14816,29903,6778,13,3492,526,385,319,29902,"
-                        + ",".join(str(random.randint(3, tokenizer.vocab_size)) for _ in range(length-20))
-                        + ",518,29914,25580,29962,29871" )) 
-    
+        sample = ",".join(str(random.randint(3, tokenizer.vocab_size - 1)) for _ in range(length))
+        dataset.append((length, sample))
         
     return dataset
 
 class Dataset():
     def __init__(self, dataset_path, total_sample_count, tokenizer_path, random_data_length):
         if dataset_path is None:
-            print("!!!!!!!!!Generating random dataset!!!!!!!!!")
+            print("Random dataset is generated.")
             self.data = generate_random_dataset(sample_count=total_sample_count, length=random_data_length, tokenizer_path=tokenizer_path)
         else:
             self.data = load_dataset(dataset_path)

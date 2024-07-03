@@ -39,6 +39,7 @@ from text_generation_server.utils.debug import dbg_trace
 from loguru import logger
 from functools import wraps
 
+from habana_frameworks.torch.hpu.metrics import metric_localcontext
 
 tracer = trace.get_tracer(__name__)
 
@@ -47,7 +48,24 @@ BATCH_BUCKET_SIZE = int(os.environ.get('BATCH_BUCKET_SIZE', 8))
 PAD_SEQUENCE_TO_MULTIPLE_OF = int(os.environ.get('PAD_SEQUENCE_TO_MULTIPLE_OF', 128))
 PREFILL_BATCH_BUCKET_SIZE = int(os.environ.get('PREFILL_BATCH_BUCKET_SIZE', 4))
 CHUNK_SIZES = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
-IGNORE_EOS_TOKEN = os.getenv("IGNORE_EOS_TOKEN", False)
+IGNORE_EOS_TOKEN = int(os.getenv("IGNORE_EOS_TOKEN", 0))
+
+def get_unique_filename(filename):
+    base, ext = os.path.splitext(filename)
+    counter = 1
+    new_filename = filename
+    while os.path.exists(new_filename):
+        new_filename = f"{base}_{counter}{ext}"
+        counter += 1
+    return new_filename
+
+filename = "debug_compile.log"
+unique_filename = get_unique_filename(filename)
+f = open(unique_filename, "w")
+
+def printfile(text):
+    print(text)
+    print(text, flush=True, file=f)
 
 def round_up(number, k):
     return (number + k - 1) // k * k
@@ -205,7 +223,7 @@ class CausalLMRequest:
             input_length=None,
             prefix_offset=None,
             read_offset=None,
-            stopping_criteria=StoppingCriteria.from_pb(data.stopping_parameters, tokenizer, IGNORE_EOS_TOKEN),
+            stopping_criteria=StoppingCriteria.from_pb(data.stopping_parameters, tokenizer, bool(IGNORE_EOS_TOKEN)),
             all_input_ids=None,)
 
     def update_idx(self, new_idx):
@@ -449,6 +467,7 @@ class CausalLMBatch(Batch):
         if input_len < max_input_length and PAD_SEQUENCE_TO_MULTIPLE_OF != 0:
             assert PAD_SEQUENCE_TO_MULTIPLE_OF <= max_input_length, "PAD_SEQUENCE_TO_MULTIPLE_OF cannot be higher than max_input_length"
             bucket_size = round_up(input_len + 1, PAD_SEQUENCE_TO_MULTIPLE_OF) - 1
+            # bucket_size = round_up(input_len, PAD_SEQUENCE_TO_MULTIPLE_OF) - 1
             left_padding = bucket_size - input_len
 
         input_ids = tokenized_inputs["input_ids"]
@@ -475,7 +494,7 @@ class CausalLMBatch(Batch):
             r.prefix_offset = input_len - 5
             r.read_offset = input_len
             r.all_input_ids = all_input_ids[r.idx]
-
+        
         input_ids = input_ids.to(device)
         attention_mask = attention_mask.to(device)
         position_ids = attention_mask.long().cumsum(-1) - 1
@@ -737,6 +756,7 @@ class CausalLM(Model):
         token_idx: Optional = None,
         past_key_values: Optional = None,
         bypass_hpu_graph: Optional = None,
+        batch_idx: Optional = None,
     ) -> Tuple[torch.Tensor, List[Tuple[torch.Tensor, torch.Tensor]]]:
         # Model Forward
         kwargs = {
@@ -755,11 +775,16 @@ class CausalLM(Model):
             kwargs["bypass_hpu_graphs"] = bypass_hpu_graph
 
         kwargs.update(self.kwargs)
-        if past_key_values is not None:
-            return self.model.forward(**kwargs)
-        else:
-            outputs = self.model.forward(**kwargs)
-            return outputs.logits, outputs.past_key_values
+        with metric_localcontext("graph_compilation") as local_metric:
+            if past_key_values is not None:
+                outputs = self.model.forward(**kwargs)
+                printfile(f"Decode Compilation  {batch_idx}  {local_metric.stats()} ")
+                return outputs
+            else:
+                outputs = self.model.forward(**kwargs)
+                printfile(f"Prefill Compailation  {batch_idx}  {local_metric.stats()}")
+                return outputs.logits, outputs.past_key_values
+            
 
     @tracer.start_as_current_span("generate_token")
     def generate_token(self, batches: List[CausalLMBatch]) -> Tuple[List[Generation], Optional[CausalLMBatch]]:
@@ -881,7 +906,8 @@ class CausalLM(Model):
                 batch.position_ids,
                 token_idx,
                 batch.past_key_values,
-                bypass_hpu_graph=prefill and self.limit_hpu_graph if self.enable_hpu_graph else None
+                bypass_hpu_graph=prefill and self.limit_hpu_graph if self.enable_hpu_graph else None,
+                batch_idx = batch.batch_id,
             )
         else:
             batch.logits = self.forward(
@@ -890,7 +916,8 @@ class CausalLM(Model):
                 batch.position_ids,
                 token_idx,
                 batch.past_key_values,
-                bypass_hpu_graph=prefill and self.limit_hpu_graph if self.enable_hpu_graph else None
+                bypass_hpu_graph=prefill and self.limit_hpu_graph if self.enable_hpu_graph else None,
+                batch_idx = batch.batch_id,
             )
 
         htorch.core.mark_step()
@@ -1010,6 +1037,7 @@ class CausalLM(Model):
 
     def warmup(self, batches: List[CausalLMBatch]) -> None:
         if len(batches) < 2:
+            printfile("No warmup")
             return
 
         # prefill
@@ -1025,6 +1053,8 @@ class CausalLM(Model):
         # decodes
         while decode_batch is not None:
             _, decode_batch = self.generate_token([decode_batch])
+        # printfile("not shifting warmup")
+        printfile("warmup finished")
 
     def shifting_warmup(self, batch: CausalLMBatch) -> None:
         chunk_sizes = CHUNK_SIZES.copy()

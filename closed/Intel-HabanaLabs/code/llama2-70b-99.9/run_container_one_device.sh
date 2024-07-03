@@ -1,6 +1,7 @@
 docker run \
            --name jh_mlperf_hpu0 -td               \
-           -e HABANA_VISIBLE_DEVICES=2 \
+           -e HABANA_VISIBLE_DEVICES=0 \
+           -e DBG_TRACE_FILENAME=./debug.log \
            -v $PWD:/root/llama2-70b-99.9 \
            -v /scratch-1/models:/mnt/weka/data/pytorch/llama2 \
            --user root --workdir=/root           \

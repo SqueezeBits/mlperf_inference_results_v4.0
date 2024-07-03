@@ -106,7 +106,19 @@ if [ ! -d "$output_dir" ]; then
 fi
 
 if [ "$fp8" = true ]; then
-    export QUANT_CONFIG=hqt/llama2-70b-8x/config_meas_maxabs_quant_MAXABS_HW.json
+    if [ "$model" = "70b" ]; then
+        export QUANT_CONFIG=hqt/llama2-70b-8x/config_meas_maxabs_quant_MAXABS_HW.json
+    elif [ "$model" = "70b3" ]; then
+        export QUANT_CONFIG=hqt/llama3-70b-8x/config_meas_maxabs_quant_MAXABS_HW.json
+    elif [ "$model" = "7b" ]; then
+        export QUANT_CONFIG=hqt/llama2-7b-chat/config_meas_maxabs_quant_MAXABS_HW.json
+    elif [ "$model" = "8b" ]; then
+        export QUANT_CONFIG=hqt/llama3-8b-instruct/config_meas_maxabs_quant_MAXABS_HW.json
+    elif [ "$model" = "13b" ]; then
+        export QUANT_CONFIG=hqt/llama2-13b-chat/config_meas_maxabs_quant_MAXABS_HW.json
+    else
+        export QUANT_CONFIG=
+    fi
 fi
 
 waiting_served_ratio=0.006
@@ -120,8 +132,8 @@ if [ "$scenario" = "Offline" ]; then
         prefill_batch_size=4
     fi
 elif [ "$fp8" = true ]; then
-    prefill_batch_size=4
-    PREFILL_BATCH_BUCKET_SIZE=4
+    prefill_batch_size=2
+    PREFILL_BATCH_BUCKET_SIZE=2
 else
     prefill_batch_size=2
 fi
