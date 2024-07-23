@@ -91,7 +91,7 @@ build_mlperf_inference()
             popd
 
             if [ "$model_name" == "llama" ]; then
-                pip install --force --no-deps -e $MLPERF_INFERENCE_CODE_DIR/$model_name/optimum-habana --verbose
+                pip install --force --no-deps git+https://github.com/huggingface/optimum-habana.git@v1.12.1 --verbose
             fi
             popd
         fi
@@ -113,7 +113,7 @@ build_mlperf_inference()
             python run_mlperf_scenarios.py $submission_args --output-dir $output_dir --mlperf-path $BUILD_DIR/mlcommons_inference --compliance --model $model --dtype $dtype
             python prepare_and_check_submission.py $submission_args --output-dir $output_dir --mlperf-path $BUILD_DIR/mlcommons_inference --systems-dir-path $MLPERF_INFERENCE_CODE_DIR/../systems --measurements-dir-path $MLPERF_INFERENCE_CODE_DIR/../measurements
         else
-            python run_mlperf_scenarios.py $submission_args --output-dir $output_dir --model $model --dtype $dtype --mode perf --skip-reqs --max-batch-size $max_batch_size --pad_sequence_to_multiple_of $pad_seq --input-length $input_length --target-qps $target_qps
+            python run_mlperf_scenarios.py $submission_args --output-dir $output_dir --model $model --dtype $dtype --mode perf --skip-reqs --max-batch-size $max_batch_size --pad_sequence_to_multiple_of $pad_sequence_to_multiple_of --input-length $input_length --target-qps $target_qps
         fi
         popd
 

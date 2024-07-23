@@ -9,4 +9,4 @@ docker run --privileged --security-opt seccomp=unconfined   \
            --cap-add=sys_nice --cap-add=SYS_PTRACE          \
            --user root --workdir=/root --net=host           \
            --entrypoint /bin/bash                      \
-           --ulimit memlock=-1:-1 mlperf4-docker-1.15.1:latest
+           --ulimit memlock=-1:-1 vault.habana.ai/gaudi-docker/1.16.0/ubuntu22.04/habanalabs/pytorch-installer-2.2.2:1.16.0-526

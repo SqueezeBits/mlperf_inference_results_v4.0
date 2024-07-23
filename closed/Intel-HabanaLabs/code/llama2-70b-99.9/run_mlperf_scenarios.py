@@ -126,6 +126,8 @@ def get_results(accuracy_path, benchmark):
 
 def get_performance(performance_path, mode, code_dir):
     perf = {}
+    if not os.path.exists(performance_path):
+        os.makedirs(performance_path)
     text = open(performance_path / "mlperf_log_summary.txt").read()
     if mode == "Offline":
         if code_dir == "llama":
@@ -300,6 +302,11 @@ def main():
             performance_path = (
                 output_dir / "logs" / scenario / mode / "performance" / "run_1"
             )
+            if os.path.exists(performance_path):
+                import random
+                rand_num = random.randint(1000, 9999)
+                new_path = f"{performance_path}_{rand_num}"
+                shutil.move(str(performance_path), new_path)
             shutil.move(str(logs_path), str(performance_path))
 
             perf = get_performance(performance_path, mode, code_dir)

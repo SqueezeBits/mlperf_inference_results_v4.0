@@ -5,6 +5,10 @@ Check out the [original README](./README_org.md) for more detailed information o
 ## Setup Environment
 ```bash
 bash run_container.sh
+
+cd llama
+bash setup_tgi.sh
+cd -
 ```
 
 ## Benchmarking Instructions
