@@ -28,4 +28,3 @@ make install-launcher
 # build benchmark
 make install-benchmark
 popd
-pip install --force --no-deps -e "$script_dir/optimum-habana" --verbose

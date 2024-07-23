@@ -173,9 +173,10 @@ else
     sharding_options=""
 fi
 
-
+export USE_FLASH_ATTENTION=true
+export FLASH_ATTENTION_RECOMPUTE=true
 text-generation-launcher --port 8080 \
-    --model-id /mnt/weka/data/pytorch/llama2/$model_name $sharding_options\
+    --model-id /mnt/weka/data/pytorch/llama2/$model_name $sharding_options \
     --max-total-tokens $MAX_TOTAL_TOKENS --max-input-length $MAX_INPUT_SEQ_LEN \
     --max-batch-prefill-tokens $max_batch_prefill_tokens --max-batch-total-tokens $max_batch_total_tokens \
     --shard-uds-path /tmp/text-generation-server-$scenario \
